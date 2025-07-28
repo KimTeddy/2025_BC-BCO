@@ -9,7 +9,7 @@ from IPython import display
 from matplotlib import style
 
 def to_input (states, actions=None,  n=2, compare=1):
-    print("to_input")
+    print("<Func: to_input>")
     '''
     Data preperpation and filtering 
     Inputs:
@@ -61,7 +61,7 @@ def to_input (states, actions=None,  n=2, compare=1):
         return output_states, output_actions
 
 def train_transition (state_space_size, training_set, model, n=2,   batch_size = 256, n_epoch = 50):
-    print("train_transition")
+    print("<Func: train_transition>")
     '''
     train transition model, given pair of states return action (s0,s1 ---> a0 if n=2)
     Input:
@@ -95,7 +95,7 @@ def train_transition (state_space_size, training_set, model, n=2,   batch_size =
     return model
 
 def train_BC (state_space_size, training_set , policy,   batch_size = 256, n_epoch = 50, ):
-    print("train_BC")
+    print("<Func: train_BC>")
     '''
     train Behavioral Cloning model, given pair of states return action (s0,s1 ---> a0 if n=2)
     Input:
@@ -132,7 +132,6 @@ def train_BC (state_space_size, training_set , policy,   batch_size = 256, n_epo
 def train(env, training_set, testing_set, criterion, state_trainsition_model):
     print("train")
     # init environment
-    action_space_size = env.action_space.shape[0]
     state_space_size  = env.observation_space.shape[0]
 
     # learning_rate = 0.01
@@ -173,12 +172,12 @@ def train(env, training_set, testing_set, criterion, state_trainsition_model):
     plt.legend()
 
     p = 42511  # select any point to test the model
-    print( state_trainsition_model(testing_set[p, :n*state_space_size]))
+    print(state_trainsition_model(testing_set[p, :n*state_space_size]))
     print(testing_set[p, n*state_space_size:])
     criterion(state_trainsition_model(testing_set[p, :n*state_space_size]), testing_set[p, n*state_space_size:] ).item()
 
 def train_bco(bco_pendulum, training_set,  criterion, state_space_size, testing_set):
-    print("train_bco")
+    print("<Func: train_bco>")
     # Train BCO model 
     loss_list = []
     test_loss = []
@@ -210,7 +209,7 @@ def train_bco(bco_pendulum, training_set,  criterion, state_space_size, testing_
         y_pred = bco_pendulum(x)
         test_loss.append(criterion(y_pred, y).item())
 
-        # plot test loss for BCO
+    # plot test loss for BCO
     # torch.save(bco_pendulum, "bco_pendulum_n=2") #uncomment to save model
     plt.plot(test_loss, label="Testing Loss BCO")
     plt.xlabel("iterations")
@@ -223,8 +222,9 @@ def train_bco(bco_pendulum, training_set,  criterion, state_space_size, testing_
     print(testing_set[p, state_space_size:])
     criterion(bco_pendulum(testing_set[p, :state_space_size]), testing_set[p, state_space_size:] ).item()
 
+# Train BCO($\alpha$) in Pendulum with interacting with environmet
 def train_bco_environmet(env, state_trainsition_model, expert_states, bco_pendulum):
-    print("train_bco_environmet")
+    print("<func: train_bco_environmet>")
     action_space_size = env.action_space.shape[0]
     state_space_size  = env.observation_space.shape[0]
     ################################## parameters ##################################
@@ -236,7 +236,6 @@ def train_bco_environmet(env, state_trainsition_model, expert_states, bco_pendul
     seeds = np.zeros(n_iterations) # random seeds
     target_reward = -300 # stop training when reward > targit_reward
     ################################## parameters ##################################
-
 
     seed_reward_mean = []
     seed_reward  = []
@@ -313,8 +312,11 @@ def train_bco_environmet(env, state_trainsition_model, expert_states, bco_pendul
         
     print(" Updated BC model itra= {}".format(itr))
 
+# Test BCO($\alpha$) in Pendulum environment with 5 random seeds
 def test_bco_environmet(env, bco_pendulum):
-    x = itr
+    print("<func: test_bco_environmet>")
+
+    ##x = itr
     n_iterations = 5
     n_ep = 1000
     max_steps = 200
@@ -356,15 +358,15 @@ def test_bco_environmet(env, bco_pendulum):
         print("Itr = {} overall reward  = {:.6f} ".format(itr, np.mean(seed_reward_mean[-1])))
         print("Interacting with environment finished")
     # np.save("reward_mean_pendulum_n={}_bco({})_expert_states={}".format(n, x , expert_states.shape[0]), seed_reward_mean) #uncomment to save the reward over 5 random seeds
+    return seed_reward_mean
 
 def main():
+    plt.style.use("ggplot")
     print("PyTorch 버전:", torch.__version__)
     print("CUDA 지원 버전:", torch.version.cuda)     # GPU 지원이 있으면 CUDA 버전 문자열
     print("사용 가능한 GPU 개수:", torch.cuda.device_count())
 
-    plt.style.use("ggplot")
-
-    # init environment
+    # init environment------------------------------------------------------------------------
     env_name = "Pendulum-v1"
     env = gym.make(env_name, render_mode="human")
     action_space_size = env.action_space.shape[0]
@@ -390,6 +392,7 @@ def main():
     # expert_state, expert_action = to_input (expert_states[a : a+number_expert_trajectories], expert_actions[a : a+number_expert_trajectories], n=n,  compare=5)
     # print("expert_state", expert_state.shape)
 
+# 1- Behavioral Cloning from Observation BCO and BCO($\alpha$)---------------------------------------------
     # concatenate expert states and actions, divided into 70% training and 30% testing
     states_new_agent, actions_new_agent = to_input(states_new_agent, actions_new_agent, n=n, compare=5 )
     new_agent_data = torch.cat((states_new_agent , actions_new_agent), 1)
@@ -417,10 +420,11 @@ def main():
         
         nn.Linear(10, action_space_size)
     )
-
     criterion = nn.L1Loss() 
 
-# Load pre-trained Transition Model and predict infered expert actions from expert states only
+    train(env, training_set, testing_set, criterion, state_trainsition_model)
+
+# Load pre-trained Transition Model and predict infered expert actions from expert states only-------------
     expert_states = to_input(expert_states,  actions=None, n=n, compare=5)
     expert_states = expert_states.detach().numpy()
     np.random.shuffle(expert_states)
@@ -430,8 +434,7 @@ def main():
     infered_expert_actions = torch.tensor(infered_expert_actions, requires_grad=False)
     infered_expert_actions = torch.clamp(infered_expert_actions, -2, 2)
 
-    train(env, training_set, testing_set, criterion, state_trainsition_model)
-
+    # Policy Model
     new_data = torch.cat((expert_states[:, :state_space_size], infered_expert_actions),1)
     n_samples = int(new_data.shape[0]*0.7)
     training_set = new_data[:n_samples]
@@ -452,15 +455,45 @@ def main():
         
         nn.Linear(20,action_space_size),
     )
-
     criterion = nn.L1Loss()
 
     train_bco(bco_pendulum, training_set, criterion, state_space_size, testing_set)
     train_bco_environmet(env, state_trainsition_model, expert_states, bco_pendulum)
-    test_bco_environmet(env, bco_pendulum)
+    seed_reward_mean = test_bco_environmet(env, bco_pendulum)
 
+# BCO--------------------------------------------------------------------------------------------
+    seed_reward_mean_bco = np.array(seed_reward_mean)
+    mean_bco  = np.mean(seed_reward_mean_bco,axis=0)
+    std_bco  = np.std(seed_reward_mean_bco,axis=0)
+# Expert
+    expert  = np.load("reward_mean_pendulum_expert.npy")
+    mean_expert= np.mean(expert,axis=0)
+    std_expert = np.std(expert,axis=0)
+# Random
+    random_mean  = np.load("reward_mean_pendulum_random.npy")
+    mean_random= np.mean(random_mean,axis=0)
+    std_random  = np.std(random_mean,axis=0)
+    # Scaled performance
+    def scaled (x, min_value, max_value):
+        return (x - min_value) / (max_value - min_value)
+    bco_score = scaled( mean_bco[-1]  , mean_random[-1] , mean_expert[-1] )
 
+# Compare BCO VS Expert VS Random
+    x = np.arange(1000)
 
+    plt.plot(x, mean_expert, "-", label="Expert")
+    plt.fill_between(x, mean_expert+std_expert, mean_expert-std_expert, alpha=0.2)
+
+    plt.plot(x, mean_bco, "-", label="BCO")
+    plt.fill_between(x, mean_bco + std_bco, mean_bco - std_bco, alpha=0.2)
+
+    plt.plot(x, mean_random, "-", label="Random")
+    plt.fill_between(x, mean_random+std_random, mean_random-std_random, alpha=0.2)
+
+    plt.xlabel("Episodes")
+    plt.ylabel("Mean Reward")
+    plt.title("Random VS Expert VS BCO in Pendulum")
+    plt.legend()
    # test(testing_set, criterion, state_trainsition_model, expert_states)
 
 if __name__ == '__main__':
