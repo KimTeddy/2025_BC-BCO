@@ -1,5 +1,7 @@
 # 2025_BC-BCO
 My first study of Behavior Cloning
+- BC: Behavior Cloning
+- BCO: Behavior Cloning from Observation
 
 ## Original Code
 https://github.com/montaserFath/BCO
