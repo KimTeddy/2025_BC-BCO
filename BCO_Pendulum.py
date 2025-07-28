@@ -130,7 +130,7 @@ def train_BC (state_space_size, training_set , policy,   batch_size = 256, n_epo
     return policy
 
 def train(env, training_set, testing_set, criterion, state_trainsition_model):
-    print("train")
+    print("<Func: train>")
     # init environment
     state_space_size  = env.observation_space.shape[0]
 
