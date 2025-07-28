@@ -4,15 +4,16 @@ My first study of Behavior Cloning
 - BCO: Behavior Cloning from Observation
 
 ## Original Code
-https://github.com/montaserFath/BCO
+https://github.com/montaserFath/BCO<br>
+➡️ Last commit was on Dec 15, 2020
 
 ## What did I do
-- Getting Old Code to Work
-  - Version Upgrade
-- Convert Jupyter Notebook to Python script
+- Getting Old Code to Work in 2025
+  - Version Upgrades
+- Convert Jupyter Notebook code to Python script
 
 ## Installing
-```
+```cmd
 conda create -n bco python=3.10 -y
 conda activate bco
 
