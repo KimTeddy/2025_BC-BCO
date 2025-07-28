@@ -12,6 +12,9 @@ https://github.com/montaserFath/BCO<br>
   - Version Upgrades
 - Convert Jupyter Notebook code to Python script
 
+## Still Learning
+- [BCO_Pendulum.py](BCO_Pendulum.py)
+
 ## Installing
 ```cmd
 conda create -n bco python=3.10 -y
