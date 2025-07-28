@@ -8,6 +8,8 @@ https://github.com/montaserFath/BCO
 
 ## What did I do
 - Getting Old Code to Work
+  - Version Upgrade
+- Convert Jupyter Notebook to Python script
 
 ## Installing
 ```
