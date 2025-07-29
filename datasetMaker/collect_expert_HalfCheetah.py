@@ -2,7 +2,7 @@ import gymnasium as gym
 import numpy as np
 from stable_baselines3 import PPO
 
-env = gym.make("HalfCheetah-v5")
+env = gym.make("HalfCheetah-v5", ctrl_cost_weight=0.1)
 model = PPO("MlpPolicy", env, verbose=0, device="cpu")
 
 # 모델 학습
@@ -13,7 +13,7 @@ expert_obs_all = []
 expert_actions_all = []
 
 num_episodes = 500  # 수집할 에피소드 수
-max_steps_per_episode = 200  # CartPole의 최대 에피소드 길이
+max_steps_per_episode = 200  # 최대 에피소드 길이
 
 for ep in range(num_episodes):
     obs, _ = env.reset()
@@ -27,7 +27,8 @@ for ep in range(num_episodes):
 
         obs, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
-        # if done:
+        if done:
+            print(info)
         #     break
 
     expert_obs_all.append(episode_obs)

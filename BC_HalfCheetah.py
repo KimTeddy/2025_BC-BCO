@@ -117,7 +117,7 @@ def test(bc_halfcheetah, testing_set, criterion):
             R=0
             for t in range (max_steps):      
                 action = bc_halfcheetah(torch.tensor(state, dtype=torch.float))
-                action = np.clip(action.detach().numpy(), -2,2)
+                action = np.clip(action.detach().numpy(), env.action_space.low, env.action_space.high)
 
                 next_state, reward, terminated, truncated, info = env.step(action)
                 done = terminated or truncated
