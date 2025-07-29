@@ -3,7 +3,7 @@ import numpy as np
 from stable_baselines3 import PPO
 
 env = gym.make("CartPole-v1")
-model = PPO("MlpPolicy", env, verbose=0)
+model = PPO("MlpPolicy", env, verbose=0, device="cpu")
 
 # 모델 학습
 model.learn(total_timesteps=10000)
@@ -27,8 +27,8 @@ for ep in range(num_episodes):
 
         obs, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
-        if done:
-            break
+        # if done:
+        #     break
 
     expert_obs_all.append(episode_obs)
     expert_actions_all.append(episode_actions)
