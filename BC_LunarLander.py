@@ -1,5 +1,5 @@
 import numpy as np 
-import gym
+import gymnasium as gym
 import torch
 import torch.nn as nn
 import torch.functional as F
@@ -39,6 +39,29 @@ def to_input (states, actions,  n=2, compare=1):
     output_actions= output_actions[:count]
     
     return output_states, output_actions
+
+# def to_input(states, actions, n=2, compare=5):
+#     '''
+#     Inputs:
+#     states: (N, state_size)
+#     actions: (N, 1)
+#     '''
+#     N, state_size = states.shape
+#     _, action_size = actions.shape
+
+#     output_states = torch.zeros((N - n + 1, state_size * n), dtype=torch.float)
+#     output_actions = torch.zeros((N - n + 1, action_size), dtype=torch.int)
+
+#     count = 0
+#     for j in range(N - n + 1):
+#         if (states[j] == -compare * torch.ones(state_size)).all() or (states[j+1] == -compare * torch.ones(state_size)).all():
+#             continue
+#         output_states[count] = states[j : j + n].reshape(-1)
+#         output_actions[count] = actions[j]
+#         count += 1
+
+#     return output_states[:count], output_actions[:count]
+
 
 def train(env, bc_lunarlander, training_set, testing_set, criterion):
     # init environment
@@ -81,7 +104,7 @@ def train(env, bc_lunarlander, training_set, testing_set, criterion):
 
 def test(bc_lunarlander, testing_set, criterion):
     # 최신 gym은 render_mode를 명시해야 렌더링 가능
-    env = gym.make("CartPole-v1", render_mode="human")
+    env = gym.make("LunarLander-v3", render_mode="human")
     
     state_space_size  = env.observation_space.shape[0]
 
@@ -145,7 +168,7 @@ def test(bc_lunarlander, testing_set, criterion):
 def main():
     plt.style.use("ggplot")
 
-    env_name='CartPole-v1'
+    env_name='LunarLander-v3'
     env = gym.make(env_name)
     action_space_size = env.action_space.n
     state_space_size  = env.observation_space.shape[0]
