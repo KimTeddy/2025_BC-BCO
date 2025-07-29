@@ -25,7 +25,7 @@ def to_input (states, actions,  n=2, compare=1):
     _, _, action_size = actions.shape
     
     output_states = torch.zeros((ep*(t-n+1) , state_size*n), dtype = torch.float)
-    output_actions = torch.zeros((ep*(t-n+1) , action_size), dtype = torch.float)
+    output_actions = torch.zeros((ep*(t-n+1) , action_size), dtype = torch.long)
     
     for i in range (ep):
         for j in range (t-n+1):
@@ -40,28 +40,23 @@ def to_input (states, actions,  n=2, compare=1):
     
     return output_states, output_actions
 
-def train(env, bc_pendulum, training_set, testing_set, criterion):
+def train(env, bc_cartpole, training_set, testing_set, criterion):
     # init environment
-    action_space_size = env.action_space.shape[0]
     state_space_size  = env.observation_space.shape[0]
-
-    
-    # learning_rate = 0.01
-    # optimizer = torch.optim.Adam(bc_pendulum.parameters(), lr = learning_rate) 
 
     loss_list = []
     test_loss = []
     batch_size = 256
     n_epoch = 50
     learning_rate = 0.001
-    optimizer = torch.optim.Adam(bc_pendulum.parameters(), lr = learning_rate) 
+    optimizer = torch.optim.Adam(bc_cartpole.parameters(), lr = learning_rate) 
     for itr in range(n_epoch):
         total_loss = 0
         b=0
         for batch in range (0,training_set.shape[0], batch_size):
             data   = training_set  [batch : batch+batch_size , :state_space_size]
             y      = training_set [batch : batch+batch_size, state_space_size:]
-            y_pred = bc_pendulum(data)
+            y_pred = bc_cartpole(data)
             loss   = criterion(y_pred, y)
             total_loss += loss.item() 
             optimizer.zero_grad()
@@ -73,31 +68,29 @@ def train(env, bc_pendulum, training_set, testing_set, criterion):
         loss_list.append(total_loss / b)
         x = testing_set[:, :state_space_size]
         y = testing_set[:,state_space_size:]
-        y_pred = bc_pendulum(x)
+        y_pred = bc_cartpole(x)
         test_loss.append(criterion(y_pred, y).item())
 
     # plot test loss
-    torch.save(bc_pendulum, "saves/bc_pendulum_n=2") # uncomment to save the model
+    torch.save(bc_cartpole, "saves/bc_cartpole_n=2") # uncomment to save the model
     plt.plot(test_loss, label="Testing Loss")
     plt.xlabel("iterations")
     plt.ylabel("loss")
     plt.legend()
     plt.show()
 
-def test(bc_pendulum, testing_set, criterion):
+def test(bc_cartpole, testing_set, criterion):
     # 최신 gym은 render_mode를 명시해야 렌더링 가능
-    env = gym.make("Pendulum-v1", render_mode="human")
+    env = gym.make("CartPole-v1", render_mode="human")
     
-    action_space_size = env.action_space.shape[0]
     state_space_size  = env.observation_space.shape[0]
 
     # --------------------- TEST -------------------------------
     p = 87 # select any point to test the model
-    print( bc_pendulum(testing_set[p, :state_space_size]) )
+    print(bc_cartpole(testing_set[p, :state_space_size]) )
     print(testing_set[p, state_space_size:])
-    criterion( bc_pendulum(testing_set[p, :state_space_size] ), testing_set[p, state_space_size:] ).item()
+    criterion( bc_cartpole(testing_set[p, :state_space_size] ), testing_set[p, state_space_size:] ).item()
 
-    
     # --------------------- TEST in Evironment -------------------------------
     ################################## parameters ##################################
     # n=2 # window size
@@ -124,9 +117,12 @@ def test(bc_pendulum, testing_set, criterion):
             rewards = []
             R=0
             for t in range (max_steps):      
-                action = bc_pendulum(torch.tensor(state, dtype=torch.float))
-                action = np.clip(action.detach().numpy(), -2,2)
-                # next_state , r, done, _   = env.step(action)
+                # action = bc_cartpole(torch.tensor(state, dtype=torch.float))
+                # action = np.clip(action.detach().numpy(), -2,2)
+                with torch.no_grad():
+                    logits = bc_cartpole(torch.tensor(state, dtype=torch.float).unsqueeze(0))
+                    action = torch.argmax(logits, dim=1).item()
+
                 next_state, reward, terminated, truncated, info = env.step(action)
                 done = terminated or truncated
                 rewards.append(reward)
@@ -145,55 +141,19 @@ def test(bc_pendulum, testing_set, criterion):
         print("Interacting with environment finished")
     env.close()
     return seed_reward_mean
-    # np.save("reward_mean_pendulum_bc_expert_states={}".format(new_data.shape[0]), seed_reward_mean) #uncomment to save reward over 5 random seeds
-
-    # Scaled performance
-# def scaled (x, min_value, max_value):
-#     return (x - min_value) / (max_value - min_value)
-    
-# def compare(seed_reward_mean):
-#     seed_reward_mean_bc = np.array(seed_reward_mean)
-#     mean_bc  = np.mean(seed_reward_mean_bc,axis=0)
-#     std_bc  = np.std(seed_reward_mean_bc,axis=0)
-
-#     expert  = np.load("reward_mean_pendulum_expert.npy")
-#     mean_expert= np.mean(expert,axis=0)
-#     std_expert = np.std(expert,axis=0)
-
-#     random_mean  = np.load("reward_mean_pendulum_random.npy")
-#     mean_random= np.mean(random_mean,axis=0)
-#     std_random  = np.std(random_mean,axis=0)
-
-#     bc_score  = scaled( mean_bc[-1] , mean_random[-1] , mean_expert[-1] )
-
-#     x = np.arange(1000)
-
-#     plt.plot(x, mean_expert, "-", label="Expert")
-#     plt.fill_between(x, mean_expert+std_expert, mean_expert-std_expert, alpha=0.2)
-
-#     plt.plot(x, mean_bc, "-", label="BC")
-#     plt.fill_between(x, mean_bc + std_bc, mean_bc - std_bc, alpha=0.2)
-
-#     plt.plot(x, mean_random, "-", label="Random")
-#     plt.fill_between(x, mean_random+std_random, mean_random-std_random, alpha=0.2)
-
-#     plt.xlabel("Episodes")
-#     plt.ylabel("Mean Reward")
-#     plt.title("Random VS Expert VS BC in Pendulum")
-#     plt.legend()
-
 
 def main():
     plt.style.use("ggplot")
 
-    env_name='Pendulum-v1'
+    env_name='CartPole-v1'
     env = gym.make(env_name)
-    action_space_size = env.action_space.shape[0]
+    action_space_size = env.action_space.n
     state_space_size  = env.observation_space.shape[0]
 
     # Load Expert data (states and actions for BC, States only for BCO)
-    expert_states  = torch.tensor(np.load("data/states_expert_Pendulum.npy"), dtype=torch.float)
-    expert_actions = torch.tensor(np.load("data/actions_expert_Pendulum.npy"), dtype=torch.float)
+    data = np.load("expert_data.npz")
+    expert_states  = torch.tensor(data["obs"], dtype=torch.float)
+    expert_actions = torch.tensor(data["actions"], dtype=torch.long)
     print("expert_states", expert_states.shape)
     print("expert_actions", expert_actions.shape)
 
@@ -216,7 +176,7 @@ def main():
     print("testing_set", testing_set.shape)
 
     # Network arch Behavioral Cloning , loss function and optimizer
-    bc_pendulum =  nn.Sequential(
+    bc_cartpole =  nn.Sequential(
         nn.Linear(state_space_size,40),
         nn.ReLU(),
         
@@ -241,8 +201,8 @@ def main():
 
     criterion = nn.MSELoss()
 
-    train(env, bc_pendulum, training_set, testing_set, criterion)
-    seed_reward_mean = test(bc_pendulum, testing_set, criterion)
+    train(env, bc_cartpole, training_set, testing_set, criterion)
+    seed_reward_mean = test(bc_cartpole, testing_set, criterion)
     #compare(seed_reward_mean)
 
 if __name__ == '__main__':
