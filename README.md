@@ -25,3 +25,9 @@ conda install -y -c pytorch -c nvidia pytorch pytorch-cuda=11.8
 
 pip install "gymnasium[box2d]"
 ```
+[Classic Control](https://gymnasium.farama.org/environments/classic_control/)
+- https://gymnasium.farama.org/environments/classic_control/pendulum/
+- https://gymnasium.farama.org/environments/classic_control/cart_pole/
+
+[Box2D](https://gymnasium.farama.org/environments/box2d/)
+- https://gymnasium.farama.org/environments/box2d/lunar_lander/
