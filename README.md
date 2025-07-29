@@ -22,4 +22,6 @@ conda activate bco
 
 conda install -y -c conda-forge numpy=1.23.5 gym ipython matplotlib
 conda install -y -c pytorch -c nvidia pytorch pytorch-cuda=11.8
+
+pip install "gymnasium[box2d]"
 ```

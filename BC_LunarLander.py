@@ -25,7 +25,7 @@ def to_input (states, actions,  n=2, compare=1):
     _, _, action_size = actions.shape
     
     output_states = torch.zeros((ep*(t-n+1) , state_size*n), dtype = torch.float)
-    output_actions = torch.zeros((ep*(t-n+1) , action_size), dtype = torch.long)
+    output_actions = torch.zeros((ep*(t-n+1) , action_size), dtype = torch.int)
     
     for i in range (ep):
         for j in range (t-n+1):
@@ -153,7 +153,7 @@ def main():
     # Load Expert data (states and actions for BC, States only for BCO)
     data = np.load("expert_data_lunarlander.npz")
     expert_states  = torch.tensor(data["obs"], dtype=torch.float)
-    expert_actions = torch.tensor(data["actions"], dtype=torch.long)
+    expert_actions = torch.tensor(data["actions"], dtype=torch.int)
     print("expert_states", expert_states.shape)
     print("expert_actions", expert_actions.shape)
 
