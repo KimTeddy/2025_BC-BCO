@@ -151,7 +151,7 @@ def main():
     state_space_size  = env.observation_space.shape[0]
 
     # Load Expert data (states and actions for BC, States only for BCO)
-    data = np.load("expert_data.npz")
+    data = np.load("expert_data_cartpole.npz")
     expert_states  = torch.tensor(data["obs"], dtype=torch.float)
     expert_actions = torch.tensor(data["actions"], dtype=torch.long)
     print("expert_states", expert_states.shape)
