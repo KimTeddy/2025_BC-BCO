@@ -284,7 +284,7 @@ def train_bco_environmet(env, state_trainsition_model, expert_states, bco_pendul
 
             
         if np.mean(seed_reward_mean[-1]) > target_reward:
-            torch.save(bco_pendulum, "bco_pendulum={}_BCO({})_best_{}_expert_states".format(n,itr,expert_states.shape[0]))        
+            torch.save(bco_pendulum, "saves/bco_pendulum={}_BCO({})_best_{}_expert_states".format(n,itr,expert_states.shape[0]))        
             break
         ################################ prepare collected states and actions ##################################
         
@@ -376,12 +376,12 @@ def main():
     n=2
 
     # Load Expert data (States only for BCO)
-    expert_states  = torch.tensor(np.load("states_expert_Pendulum.npy"), dtype=torch.float)
+    expert_states  = torch.tensor(np.load("data/states_expert_Pendulum.npy"), dtype=torch.float)
     print("expert_states", expert_states.shape)     
 
     # Load new data (states and actions for BCO)
-    states_new_agent  =  torch.tensor(np.load ("states_Pendulum_exploration.npy")[:1000], dtype= torch.float)
-    actions_new_agent =  torch.tensor(np.load ("actions_Pendulum_exploration.npy")[:1000], dtype= torch.float)
+    states_new_agent  =  torch.tensor(np.load ("data/states_Pendulum_exploration.npy")[:1000], dtype= torch.float)
+    actions_new_agent =  torch.tensor(np.load ("data/actions_Pendulum_exploration.npy")[:1000], dtype= torch.float)
     print("states_new_agent",states_new_agent.shape)
     print("actions_new_agent",actions_new_agent.shape)
 

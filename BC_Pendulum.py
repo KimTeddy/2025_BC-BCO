@@ -77,7 +77,7 @@ def train(env, bc_pendulum, training_set, testing_set, criterion):
         test_loss.append(criterion(y_pred, y).item())
 
     # plot test loss
-    torch.save(bc_pendulum, "bc_pendulum_n=2") # uncomment to save the model
+    torch.save(bc_pendulum, "saves/bc_pendulum_n=2") # uncomment to save the model
     plt.plot(test_loss, label="Testing Loss")
     plt.xlabel("iterations")
     plt.ylabel("loss")
