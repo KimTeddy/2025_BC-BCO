@@ -81,7 +81,7 @@ def train(env, bc_pusher, training_set, testing_set, criterion):
 
 def test(bc_pusher, testing_set, criterion):
     # 최신 gym은 render_mode를 명시해야 렌더링 가능
-    env = gym.make("Pusher-v5", render_mode="human")
+    env = gym.make("Pusher-v5", render_mode="human", max_episode_steps=10000, frame_skip=100)
     
     state_space_size  = env.observation_space.shape[0]
 
@@ -95,8 +95,8 @@ def test(bc_pusher, testing_set, criterion):
     ################################## parameters ##################################
     # n=2 # window size
     n_iterations = 5 # max number of interacting with environment
-    n_ep = 1000 #1000 # number of epoches
-    max_steps = 500 # max timesteps per epoch
+    n_ep = 3 #1000 # number of epoches
+    max_steps = 100 # max timesteps per epoch
     gamma = 1.0 # discount factor
     seeds = [684, 559, 629, 192, 835] # random seeds for testing
     ################################## parameters ##################################

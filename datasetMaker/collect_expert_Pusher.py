@@ -2,7 +2,7 @@ import gymnasium as gym
 import numpy as np
 from stable_baselines3 import PPO
 
-env = gym.make("Pusher-v5")
+env = gym.make("Pusher-v5", max_episode_steps=10000, frame_skip=100)
 model = PPO("MlpPolicy", env, verbose=0, device="cpu")
 
 # 모델 학습
