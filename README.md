@@ -31,3 +31,6 @@ pip install "gymnasium[box2d]"
 
 [Box2D](https://gymnasium.farama.org/environments/box2d/)
 - https://gymnasium.farama.org/environments/box2d/lunar_lander/
+
+[MuJoCo](https://gymnasium.farama.org/environments/mujoco/)
+- https://gymnasium.farama.org/environments/mujoco/half_cheetah/
