@@ -134,6 +134,7 @@ for episode in range(n_episodes):
         
     expert_obs_all.append(episode_obs)
     expert_actions_all.append(episode_actions)
+    
 expert_obs_all = np.array(expert_obs_all, dtype=np.int32)
 expert_actions_all = np.array(expert_actions_all, dtype=np.int32)
 # 저장
