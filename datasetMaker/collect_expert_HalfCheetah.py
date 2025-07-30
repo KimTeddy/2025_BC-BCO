@@ -3,10 +3,10 @@ import numpy as np
 from stable_baselines3 import PPO
 
 env = gym.make("HalfCheetah-v5", ctrl_cost_weight=0.1)
-model = PPO("MlpPolicy", env, verbose=0, device="cpu")
+model = PPO("MlpPolicy", env, verbose=1, device="cpu")
 
 # 모델 학습
-model.learn(total_timesteps=10000)
+model.learn(total_timesteps=10000, progress_bar=True)
 
 # trajectory 저장
 expert_obs_all = []
