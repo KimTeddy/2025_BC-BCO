@@ -1,5 +1,5 @@
 import numpy as np 
-import gym
+import gymnasium as gym
 import torch
 import torch.nn as nn
 from matplotlib import pyplot as plt
@@ -41,17 +41,15 @@ def to_input (states, actions,  n=2, compare=1):
 
 def train(env, bc_walker, training_set, testing_set, criterion):
     # init environment
-    action_space_size = env.action_space.shape[0]
     state_space_size  = env.observation_space.shape[0]
 
-    
     # learning_rate = 0.01
     # optimizer = torch.optim.Adam(bc_walker.parameters(), lr = learning_rate) 
 
     loss_list = []
     test_loss = []
     batch_size = 256
-    n_epoch = 500
+    n_epoch = 50
     learning_rate = 0.001
     optimizer = torch.optim.Adam(bc_walker.parameters(), lr = learning_rate) 
     for itr in range(n_epoch):
@@ -148,14 +146,15 @@ def test(bc_walker, testing_set, criterion):
 def main():
     plt.style.use("ggplot")
 
-    env_name='BipedalWalker-v3'
+    env_name="BipedalWalker-v3"
     env = gym.make(env_name)
     action_space_size = env.action_space.shape[0]
     state_space_size  = env.observation_space.shape[0]
 
     # Load Expert data (states and actions for BC, States only for BCO)
-    expert_states  = torch.tensor(np.load("states_walker_exploration.npy"), dtype=torch.float)
-    expert_actions = torch.tensor(np.load("actions_walker_exploration.npy"), dtype=torch.float)
+    data = np.load("expert_data_walker.npz")
+    expert_states  = torch.tensor(data["obs"], dtype=torch.float)
+    expert_actions = torch.tensor(data["actions"], dtype=torch.int)
     print("expert_states", expert_states.shape)
     print("expert_actions", expert_actions.shape)    
 
