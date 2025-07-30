@@ -10,7 +10,7 @@ import gymnasium as gym
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
-
+from gymnasium.envs.toy_text.frozen_lake import generate_random_map
 # 알고리즘의 파라미터 설정: 스텝 사이즈 alpha (0, 1], 0 보다 큰 작은 탐색률 e 
 GAMMA = 0.99
 ALPHA = 0.9
@@ -105,14 +105,19 @@ scores = []
 
 Q = np.load('./q_table.npy', allow_pickle=True).item()
 
+expert_obs_all = []
+expert_actions_all = []
+
 # 각 에피소드를 위한 반복문
 for episode in range(n_episodes):
     #전체 episode의 99.9%가 지나면 렌더링
     #if episode > n_episodes * 0.555:
-    env = gym.make('FrozenLake-v1', is_slippery=is_slippery,
-                    render_mode="human")
+    # env = gym.make('FrozenLake-v1', is_slippery=is_slippery,
+    #                 render_mode="human")
     # 에피소드를 초기화
     obs, _ = env.reset()
+    episode_obs = []
+    episode_actions = []
     # Loop for each step of episode:
     while True:
        
@@ -120,7 +125,17 @@ for episode in range(n_episodes):
 
         obs, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
+        episode_obs.append([obs])
+        episode_actions.append([action])  # Discrete일 경우 1차원으로 묶음
 
         # 에피소드가 끝나면 반복문 종료
         if done:
             break
+        
+    expert_obs_all.append(episode_obs)
+    expert_actions_all.append(episode_actions)
+expert_obs_all = np.array(expert_obs_all, dtype=np.int32)
+expert_actions_all = np.array(expert_actions_all, dtype=np.int32)
+# 저장
+np.savez("expert_data_FrozenLake.npz", obs=expert_obs_all, actions=expert_actions_all)
+print("Saved expert_data_FrozenLake.npz:", expert_obs_all.shape, expert_actions_all.shape)
