@@ -24,8 +24,8 @@ def to_input (states, actions,  n=2, compare=1):
     ep, t, state_size = states.shape
     _, _, action_size = actions.shape
 
-    output_states = torch.zeros((ep*(t-n+1) , state_size*n), dtype = torch.int32)
-    output_actions = torch.zeros((ep*(t-n+1) , action_size), dtype = torch.int32)
+    output_states = torch.zeros((ep*(t-n+1) , state_size*n), dtype = torch.float32)
+    output_actions = torch.zeros((ep*(t-n+1) , action_size), dtype = torch.float32)
     
     for i in range (ep):
         for j in range (t-n+1):
@@ -46,18 +46,22 @@ def train(env, bc_FrozenLake, training_set, testing_set, criterion):
 
     loss_list = []
     test_loss = []
-    batch_size = 16 # 256
-    n_epoch = 50
+    batch_size = 256 # 256
+    n_epoch = 200
     learning_rate = 0.001
     optimizer = torch.optim.Adam(bc_FrozenLake.parameters(), lr = learning_rate) 
     for itr in range(n_epoch):
+        idx = np.arange(training_set.shape[0])
+        np.random.shuffle(idx)
+        train_data = training_set[idx]
         total_loss = 0
         b=0
         for batch in range (0,training_set.shape[0], batch_size):
-            data   = training_set  [batch : batch+batch_size , :state_space_size]
-            y      = training_set [batch : batch+batch_size, state_space_size:]
+            data   = train_data  [batch : batch+batch_size , :state_space_size]
+            y      = train_data [batch : batch+batch_size, state_space_size:]
+            y_idx = np.argmax(y, axis=-1)
             y_pred = bc_FrozenLake(data)
-            loss   = criterion(y_pred, y)
+            loss   = criterion(y_pred, y_idx)
             total_loss += loss.item() 
             optimizer.zero_grad()
             loss.backward()
@@ -96,7 +100,7 @@ def test(bc_FrozenLake, testing_set, criterion):
     # n=2 # window size
     n_iterations = 5 # max number of interacting with environment
     n_ep = 25 #1000 # number of epoches
-    max_steps = 25 # max timesteps per epoch
+    max_steps = 100 # max timesteps per epoch
     gamma = 1.0 # discount factor
     seeds = [684, 559, 629, 192, 835] # random seeds for testing
     ################################## parameters ##################################
@@ -121,7 +125,9 @@ def test(bc_FrozenLake, testing_set, criterion):
                 # action = np.clip(action.detach().numpy(), -2,2)
                 
                 with torch.no_grad():
-                    logits = bc_FrozenLake(torch.tensor(state, dtype=torch.float).unsqueeze(0))
+                    state_ = np.zeros([env.observation_space.n])
+                    state_[state] = 1
+                    logits = bc_FrozenLake(torch.tensor(state_, dtype=torch.float).unsqueeze(0))
                     action = torch.argmax(logits, dim=1).item()
 
                 next_state, reward, terminated, truncated, info = env.step(action)
@@ -153,8 +159,8 @@ def main():
 
     # Load Expert data (states and actions for BC, States only for BCO)
     data = np.load("expert_data_FrozenLake.npz")
-    expert_states  = torch.tensor(data["obs"], dtype=torch.int32)
-    expert_actions = torch.tensor(data["actions"], dtype=torch.int32)
+    expert_states  = torch.tensor(data["obs"], dtype=torch.float32)
+    expert_actions = torch.tensor(data["actions"], dtype=torch.float32)
     print("expert_states", expert_states.shape)
     print("expert_actions", expert_actions.shape)
 
@@ -200,7 +206,8 @@ def main():
         nn.Linear(20,action_space_size),
     )
 
-    criterion = nn.MSELoss()
+
+    criterion = nn.CrossEntropyLoss()
 
     train(env, bc_FrozenLake, training_set, testing_set, criterion)
     seed_reward_mean = test(bc_FrozenLake, testing_set, criterion)

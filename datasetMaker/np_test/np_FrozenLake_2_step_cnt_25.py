@@ -16,7 +16,7 @@ from gymnasium.envs.toy_text.frozen_lake import generate_random_map
 GAMMA = 0.99
 ALPHA = 0.9
 epsilon = 0.3
-n_episodes = 20_000
+n_episodes = 40_000
 
 is_slippery = False
 
@@ -104,6 +104,8 @@ scores = []
 # for row in optimal_policy:
 #     print(row)
 
+num_observation = env.observation_space.n
+
 Q = np.load('./q_table.npy', allow_pickle=True).item()
 
 expert_obs_all = []
@@ -112,6 +114,7 @@ expert_actions_all = []
 ep_cnt=0
 success_cnt=0
 step_cnt = 0
+step_cnt_25 = 0
 
 num_episodes = 500  # 수집할 에피소드 수
 max_steps_per_episode = 200  # 최대 에피소드 길이
@@ -139,26 +142,34 @@ for episode in range(n_episodes):
 
         obs, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
-        episode_obs.append([obs])
-        episode_actions.append([action])  # Discrete일 경우 1차원으로 묶음
+
+        obs_onehot = np.zeros([num_observation], dtype=np.float32)
+        obs_onehot[obs] = 1
+        action_onehot = np.zeros([num_actions], dtype=np.float32)
+        action_onehot[action] = 1
+        episode_obs.append([obs_onehot])
+        episode_actions.append([action_onehot])  # Discrete일 경우 1차원으로 묶음
 
         step_cnt += 1
 
         # 에피소드가 끝나면 반복문 종료
         if done:
-            ep_cnt += done
+            ep_cnt += done 
             success_cnt += (reward>0)
             if ep_cnt%100==0:
-                print(f'success rate = {success_cnt/ep_cnt} ({success_cnt}/{ep_cnt}), {step_cnt}')
+                print(f'success rate = {success_cnt/ep_cnt} ({success_cnt}/{ep_cnt}), {step_cnt}, {step_cnt_25}')
             break
         
     if step_cnt == 25:
-        expert_obs_all.append(episode_obs)
-        expert_actions_all.append(episode_actions)
+        step_cnt_25 += 1
+        expert_obs_all.append(np.stack(episode_obs, axis=0))
+        expert_actions_all.append(np.stack(episode_actions, axis=0))
+    if step_cnt_25 >= 100:
+        break
     step_cnt = 0
     
-expert_obs_all = np.array(expert_obs_all, dtype=np.int32)
-expert_actions_all = np.array(expert_actions_all, dtype=np.int32)
+expert_obs_all = np.stack(expert_obs_all, axis=0).squeeze(axis=2)
+expert_actions_all = np.stack(expert_actions_all, axis=0).squeeze(axis=2)
 # 저장
 np.savez("expert_data_FrozenLake.npz", obs=expert_obs_all, actions=expert_actions_all)
 print("Saved expert_data_FrozenLake.npz:", expert_obs_all.shape, expert_actions_all.shape)
