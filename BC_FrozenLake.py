@@ -23,7 +23,7 @@ def to_input (states, actions,  n=2, compare=1):
     index= []
     ep, t, state_size = states.shape
     _, _, action_size = actions.shape
-    
+
     output_states = torch.zeros((ep*(t-n+1) , state_size*n), dtype = torch.int32)
     output_actions = torch.zeros((ep*(t-n+1) , action_size), dtype = torch.int32)
     
@@ -46,7 +46,7 @@ def train(env, bc_FrozenLake, training_set, testing_set, criterion):
 
     loss_list = []
     test_loss = []
-    batch_size = 256
+    batch_size = 16 # 256
     n_epoch = 50
     learning_rate = 0.001
     optimizer = torch.optim.Adam(bc_FrozenLake.parameters(), lr = learning_rate) 
@@ -95,8 +95,8 @@ def test(bc_FrozenLake, testing_set, criterion):
     ################################## parameters ##################################
     # n=2 # window size
     n_iterations = 5 # max number of interacting with environment
-    n_ep = 200 #1000 # number of epoches
-    max_steps = 500 # max timesteps per epoch
+    n_ep = 25 #1000 # number of epoches
+    max_steps = 25 # max timesteps per epoch
     gamma = 1.0 # discount factor
     seeds = [684, 559, 629, 192, 835] # random seeds for testing
     ################################## parameters ##################################
@@ -119,6 +119,7 @@ def test(bc_FrozenLake, testing_set, criterion):
             for t in range (max_steps):      
                 # action = bc_FrozenLake(torch.tensor(state, dtype=torch.float))
                 # action = np.clip(action.detach().numpy(), -2,2)
+                
                 with torch.no_grad():
                     logits = bc_FrozenLake(torch.tensor(state, dtype=torch.float).unsqueeze(0))
                     action = torch.argmax(logits, dim=1).item()

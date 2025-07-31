@@ -8,6 +8,7 @@
 
 import gymnasium as gym
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from gymnasium.envs.toy_text.frozen_lake import generate_random_map
@@ -108,32 +109,53 @@ Q = np.load('./q_table.npy', allow_pickle=True).item()
 expert_obs_all = []
 expert_actions_all = []
 
+ep_cnt=0
+success_cnt=0
+step_cnt = 0
+
+num_episodes = 500  # 수집할 에피소드 수
+max_steps_per_episode = 200  # 최대 에피소드 길이
+
 # 각 에피소드를 위한 반복문
 for episode in range(n_episodes):
     #전체 episode의 99.9%가 지나면 렌더링
-    #if episode > n_episodes * 0.555:
-    # env = gym.make('FrozenLake-v1', is_slippery=is_slippery,
-    #                 render_mode="human")
+    # if episode > n_episodes * 0.999:
+    #     env = gym.make('FrozenLake-v1', is_slippery=is_slippery,
+    #                     render_mode="human")
     # 에피소드를 초기화
     obs, _ = env.reset()
     episode_obs = []
     episode_actions = []
     # Loop for each step of episode:
+    # for _ in range(max_steps_per_episode):
     while True:
        
-        action = np.argmax(Q[obs])  # 가장 큰 Q값을 가지는 행동 선택
+        # if np.random.rand() < epsilon:
+        #     action = env.action_space.sample()  # 무작위 행동 선택
+        # else:
+        #     action = np.argmax(Q[obs])  # 가장 큰 Q값을 가지는 행동 선택
+
+        action = random.choices(np.arange(4), weights=Q[obs])[0]
 
         obs, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
         episode_obs.append([obs])
         episode_actions.append([action])  # Discrete일 경우 1차원으로 묶음
 
+        step_cnt += 1
+
         # 에피소드가 끝나면 반복문 종료
         if done:
+            ep_cnt += done
+            success_cnt += (reward>0)
+            if ep_cnt%100==0:
+                print(f'success rate = {success_cnt/ep_cnt} ({success_cnt}/{ep_cnt}), {step_cnt}')
             break
         
-    expert_obs_all.append(episode_obs)
-    expert_actions_all.append(episode_actions)
+    if step_cnt == 25:
+        expert_obs_all.append(episode_obs)
+        expert_actions_all.append(episode_actions)
+    step_cnt = 0
     
 expert_obs_all = np.array(expert_obs_all, dtype=np.int32)
 expert_actions_all = np.array(expert_actions_all, dtype=np.int32)
